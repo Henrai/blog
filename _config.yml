@@ -7,13 +7,13 @@ title: Anze's Blog
 subtitle: ''
 description: ''
 keywords:
-author: Anze Wang 
+author: Anze Wang
 language: en
 timezone: ''
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: https://henrai.github.io/ 
+url: https://henrai.github.io/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -39,7 +39,7 @@ external_link:
   field: site # Apply to the whole site
   exclude: ''
 filename_case: 0
-render_drafts: true 
+render_drafts: true
 post_asset_folder: true
 relative_link: false
 future: true
@@ -105,6 +105,9 @@ theme: butterfly
 deploy:
   type: git
   repo: git@github.com:Henrai/henrai.github.com.git
+
+pandoc:
+  pandoc_path: C:\Users\waz\AppData\Local\Pandoc\pandoc.exe
 
 mathjax:
   tags: none # or 'ams' or 'all'

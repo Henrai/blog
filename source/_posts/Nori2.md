@@ -1,10 +1,10 @@
 ---
-title: 【Nori】Ray Tracing Acceleration Data Structures 
+title: 【Nori】Ray Tracing Acceleration Data Structures
 date: 2023-09-03 02:14:51
 banner_img: 2023/09/03/Nori2/ajax.png
 categories: Computer Graphics
 math: true
-tags:  
+tags:
 - Data Sturcture
 - Nori
 ---
@@ -28,25 +28,27 @@ tags:
     };
     ```
 
-    1. children为子节点的数组，每一个元素为指向子节点的unique ptr。
-    2. box 为包住当前节点的bounding box
-    3. ids 为被当前节点包住的所有三角形的id
+1. children为子节点的数组，每一个元素为指向子节点的unique ptr。
+2. box 为包住当前节点的bounding box
+3. ids 为被当前节点包住的所有三角形的id
 
 ## How many bytes of memory does one of your octree nodes occupy? (3 pts)
 
-    1. box 里存了min和max两个点，每一个点里有3个float。 所以size 3*4*2 = 24
-    2. vector里存了3个元素： begin(), end(), capacity的指针， 所以size 为 3*8 = 24。
-    
-    所以最终的size为 24 + 24*2 = 72
+1. box 里存了min和max两个点，每一个点里有3个float。 所以size 3*4*2 = 24
+2. vector里存了3个元素： begin(), end(), capacity的指针， 所以size 为 3*8 = 24。
+
+所以最终的size为 24 + 24*2 = 72
+
+
 ## Compute statistics during the tree construction. For the Ajax scene, report:
 
-    - Construction time with your local machine (not graded)
+- Construction time with your local machine (not graded)
         949ms
-    - Number of interior nodes (2 pts)
+- Number of interior nodes (2 pts)
         27542
-    - Number of leaf nodes (2 pts)
+- Number of leaf nodes (2 pts)
         192795
-    - Average number of triangles per leaf node (a triangle can exist in multiple nodes) (2 pts)
+- Average number of triangles per leaf node (a triangle can exist in multiple nodes) (2 pts)
         7
 
 
@@ -82,7 +84,7 @@ tags:
         float distance = children[i]->box.distanceTo(ray.o);
         distances[i] = std::make_pair(distance, i);
     }
-        
+
     std::sort(distances, distances + 8, [](const auto& l, const auto& r) { return l.first < r.first; });
 
     for (auto pair : distances) {
@@ -94,7 +96,7 @@ tags:
     }
 ```
 
-## Measure the render time with this improved version. How much of a speedup is this relative to Part 2? Elaborate the configuration details you use for comparison. 
+## Measure the render time with this improved version. How much of a speedup is this relative to Part 2? Elaborate the configuration details you use for comparison.
 
 1.2s vs 949ms
 
