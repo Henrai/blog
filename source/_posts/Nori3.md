@@ -96,6 +96,7 @@ $$
 
 在蒙特卡洛积分的框架中，合适的采样策略能够显著加快收敛速度。一个核心的研究问题是如何实现满足分布q(x)的随机变量的采样。尽管存在多种策略，但在此，我们将专注于PBRT所描述的“反演法”。
 
+## 反演法
 为了深入理解此方法，首先考虑离散概率分布。假设存在一个分布，其概率之和为1，其概率密度函数(pdf)与累积分布函数(cdf)如下
 
 |pdf|cdf|
@@ -115,6 +116,83 @@ $$
 
 值得注意的是，虽然此例为离散情况，但该策略在连续分布情境中同样有效。
 
+## 分布变换
+
+上面的例子中我们用的是1d均匀分布，但是并不适用于所有情况。所以我们需要将他推广到任意两种分布间的转换。
+
+首先考略1维的情境：设随机变量X的概率密度为p(x)。进一步定义一个变换映射为f(x) $\rightarrow$ Y = f(X)。需要强调的是，映射f必须是一对一的双射，以确保可以精确地描述概率密度的映射关系。
+
+由以下关系：
+$$
+Pr[Y \le f(x)] = Pr[X \le x].
+$$
+我们可以得到cdf:
+$$
+P_f(y) = P_f(f(x)) = P(x)
+$$
+求其导数，我们得到:
+$$
+\frac{df}{dx}p_f(y) = p(x)
+$$
+进而推出：
+$$
+p_f(y) = \left( \frac{df}{dx} \right)^{-1} p(x)
+$$
+对于多维函数，我们只需要把导数换成Jacobian矩阵的行列式。
+$$
+p_T(\vec{y}) = \frac{p(x)}{\mid J_T(\vec{x}) \mid}
+$$
+下面用极坐标举例,我们知道极坐标的参数方程可以写成如下形式：
+$$
+\begin{cases}
+& x = r \space cos\theta \newline
+& y = r \space sin\theta
+\end{cases}
+$$
+那么我们的Jacobian矩阵如下：
+$$
+J_T = \begin{pmatrix}
+ \frac{\partial x}{\partial r} & \frac{\partial x}{\partial \theta} \newline
+ \frac{\partial y}{\partial r} & \frac{\partial y}{\partial \theta} \newline
+\end{pmatrix} = \begin{pmatrix}
+ cos\theta & -r \space sin\theta \newline
+ sin\theta & r \space cos\theta \newline
+\end{pmatrix}
+$$
+
+从而有$\mid J_T\mid = r$。替代之前的表达式，我们可以得到：
+
+ $$
+ p(r, \theta) = r \space p(x,y)
+ $$
+
+采用相似的方法，我们可以得到球坐标的概率变换公式：
+ $$
+ p(r,\theta,\phi) = r^2sin\theta \space p(x,y,z)
+ $$
+
+通过观察我们可以发现，概率变换的公式同积分换元是一样的，其实计算过程也是一样的，所以可以用这种方法辅助记忆
+
+## 多维分布采样
+
+现在我们已经掌握了如何算任意分布和坐标的pdf，但是如何从给定的pdf中抽选随机数呢？让我们以2维函数f(x,y)来做例子：
+
+当x和y是独立的变量时，它们的联合pdf是它们各自的pdf的乘积，即 $f(x,y) = p_x(x) * p_y(y)$。在这种情况下，我们就可以分别从$p_x$和$p_y$中抽取随机数进行采样。
+
+但是，并不是所有的分布的变量都是独立的。对于这样的情况，我们可以采用“边际密度函数”(marginal density function)来处理其中一个变量。例如，通过积分来得到x的边际密度函数
+
+$$
+p(x) = \int p(x,y) dy
+$$
+
+我们可以把它看成一个关于X的独立概率分布，或者说，对于所有可能的y，x的平均概率。
+
+一旦我们得到了p(x)，就可以进一步计算条件概率来得到y：
+$$
+p(y \mid x) = \frac{p(x,y)}{p(x)}
+$$
+
+对于更高维度的分布，此方法同样适用，允许我们依次降维来进行采样。
 
 # 蒙特卡洛采样
 了解了基础知识后，让我们正式进入Nori的作业部分
@@ -171,7 +249,7 @@ $$
 $$
 
 
-## Uniform Sphere/ Uniform Sphere
+## Uniform Sphere/ Uniform SemiSphere
 半球和球的做法几乎一样，我们就以半球积分为例子。
 
 根据半球的表面积公式，我们可以得到：
@@ -212,6 +290,13 @@ $$
  &z = cos\theta = \xi_1
 \end{align}
 $$
+用同样的方法我们也可以求出对整个球面采样的分布：
+$$
+\begin{align}
+ &\theta = acos(1- 2\xi_1) \newline
+ &\phi = 4\pi \xi_2
+\end{align}
+$$
 
 ## Cosine Hemisphere
 在这道题中我们希望概率分布为$p(\omega) = p(\theta) = \frac{cos\theta}{\pi}$, 那么我们就可以通过换元得到
@@ -228,7 +313,7 @@ $$
 
 我们有圆盘上的均匀概率密度为$p(r,\theta) = \frac{r}{\pi}$.
 
-考虑如下变换:$ (\theta,\phi) \rightarrow (r, \phi) $
+考虑如下变换:$$(\theta, \phi) \rightarrow (r, \phi) $$
 我们有：
 $$
 \begin{cases}
@@ -253,5 +338,62 @@ Vector3f Warp::squareToCosineHemisphere(const Point2f &sample) {
     float y = disk.y();
     return Vector3f(x, y, sqrt(1 - x * x - y * y));
 }
-
 ```
+# 简单的着色算法
+## 点光源
+经典的点光源着色，抄公式就好
+```c++
+ Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray) const {
+
+        Intersection its;
+        if (!scene->rayIntersect(ray, its)) {
+            return Color3f(0.0f);
+        }
+
+        const auto & frame = its.shFrame;
+        auto x = its.p;
+        auto dir = (mPosition-x).normalized();
+        bool v = !scene->rayIntersect(Ray3f(x, dir));
+        if (!v) return Color3f(0.f);
+        float cosTheta = std::max(0.f, frame.cosTheta(frame.toLocal(dir)));
+        float norm = (x - mPosition).norm();
+        return cosTheta * INV_FOURPI * INV_PI / (norm * norm) * mEnergy;
+    }
+```
+![](simple.png)
+
+
+## 环境光遮蔽
+
+环境光遮蔽描述了一个物体在被四面八方光源照亮的环境中，如何因为物体的自身结构导致的局部遮挡而形成阴影。简单来说，物体的某些部分因为其他部分的遮挡而变得暗淡。
+
+上述现象可以由这个公式表示：
+$$
+L(x) = \int_{H^2} V(x,x+\alpha \omega_i) \frac{cos\theta}{\pi} d\omega_i
+$$
+
+这个公式本质上计算了在所有可能照射到点x的方向上，哪些方向的光线实际上能够到达点x，而不是被其他物体遮挡。对于每一个方向，它都考虑了光线的强度（由Lambert's cosine law给出）和是否被遮挡（由可见性函数给出）。参数$\alpha$是一个距离值，它可以影响可见性函数。在此公式中，我们假设 $\alpha = \infty$，这意味着我们没有设定一个明确的距离来限制遮挡效应的影响。
+
+考虑到被积函数可以被写成$f(\omega)\frac{cos\theta}{\pi}d\omega_i$,而积分域为半球面，那么我们其实可以用第一部分求的Cosine Hemisphere采样来加速积分收敛。
+
+我们有
+$$
+    Li = \frac {V(x,x+\alpha \omega_i) \frac{cos\theta}{\pi}}{cos\theta \space \pi} =V(x,x+\alpha \omega_i)
+$$
+因此在蒙特卡洛积分中，采用Cosine Hemisphere采样时，我们只需对可见性进行累加即可
+
+
+```c++
+Color3f Li(const Scene* scene, Sampler* sampler, const Ray3f& ray) const {
+        Intersection its;
+        if (!scene->rayIntersect(ray, its))
+            return Color3f(0.0f);
+        const auto& frame = its.shFrame;
+        auto sample =  sampler->next2D();
+        Vector3f dir = frame.toWorld(Warp::squareToCosineHemisphere(sample));
+        bool v = !scene->rayIntersect(Ray3f(its.p, dir));
+        if (!v) return Color3f(0.f);
+        return 1;
+    }
+```
+![](ao.png)
