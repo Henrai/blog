@@ -1,7 +1,6 @@
 ---
 title: 【Nori】Ray Tracing Acceleration Data Structures
 date: 2023-09-03 02:14:51
-banner_img: 2023/09/03/Nori2/ajax.png
 categories: Computer Graphics
 math: true
 tags:

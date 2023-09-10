@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Anze's Blog
+title: Computer Graphics is Awesome
 subtitle: ''
 description: ''
 keywords:
-author: Anze Wang
+author: Henrai
 language: en
 timezone: ''
 
@@ -98,7 +98,7 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: butterfly
+theme: maupassant
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
